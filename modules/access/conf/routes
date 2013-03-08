@@ -1,0 +1,2 @@
+#only export secure module routes
+*		/						module:secure

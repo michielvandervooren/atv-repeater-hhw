@@ -1,0 +1,78 @@
+#{extends 'main.html' /}
+
+<div class="page secondary fixed-header">
+    <div class="page-header ">
+        <div class="page-header-content">
+            <h1>ATV Repeater<small>Heerhugowaard</small></h1>
+        </div>
+    </div>
+    
+	#{if flash.error}
+    <div id="error" class="error-bar">
+    	<p>&{flash.error}</p>
+    	<button class="place-right" onclick="$('#error').hide();">Gezien</button>
+    </div>
+    #{/if}
+	#{if flash.success}
+    <div id="success" class="error-bar bg-color-green">
+    	<p>&{flash.success}</p>
+    	<button class="place-right" onclick="$('#success').hide();">Gezien</button>
+    </div>
+    #{/if}
+
+	<div class="page-region">
+        <div class="page-region-content tiles">
+	        <div class="tile-group" style="width: 510px">
+                <div class="tile quadro double-vertical opacity-middle">
+                    <div class="tile-content">
+						#{form @authenticate()}
+							<div class="input-control text">
+        						<input class="fg-color-grayDark" type="text" class="with-helper" placeholder="&{'secure.username'}" name="username" id="username" value="${flash.username}"/>
+        						<button class="helper"></button>
+    						</div>
+							<div class="input-control password">
+        						<input class="fg-color-grayDark" type="password" class="with-helper" placeholder="&{'secure.password'}" name="password" id="password" value=""/>
+        						<button class="helper"></button>
+    						</div>
+							<label class="input-control checkbox span4">
+       							<input type="checkbox" name="remember" id="remember" value="true" ${flash.remember ? 'checked="true"' : ''} />
+       							<span class="helper">&{'secure.remember'}</span>
+   							</label>
+							<input type="submit" id="signin" value="&{'secure.signin'}" />
+						#{/form}						
+                    </div>
+                    <div class="brand">
+                        <span class="name"><h3>Nog geen toegang? Vraag een account aan: <a href="mailto:atvhhw@quicknet.nl"><i class="icon-mail"></i></a></h3></span>
+                    </div>
+                </div>
+                <div class="tile quadro opacity-middle" data-role="tile-slider" data-param-period="2300">
+                    <div class="tile-content">
+                        <h2><small>Welkom bij de WebController van ATV Repeater Heerhugowaard!</small></h2>
+                    </div>
+                    <div class="tile-content">
+                        <h2><small><strong>Let op!</strong> Deze applicatie maakt gebruik van Websockets; deze worden niet door alle browsers ondersteund.</small></h2>
+                    </div>
+                    <div class="tile-content">
+                        <h2><small>Voor een optimaal gebruik kan je het beste &eacute;&eacute;n van de volgende browsers gebruiken:</small></h2>
+                    </div>
+                    <div class="tile-content">
+                        <h2><small><i class="icon-chrome"></i>Google Chrome vanaf versie 14</small></h2>
+                    </div>
+                    <div class="tile-content">
+                        <h2><small><i class="icon-firefox"></i>Firefox vanaf versie 11</small></h2>
+                    </div>
+                    <div class="tile-content">
+                        <h2><small><i class="icon-IE"></i>Internet Explorer 10</small></h2>
+                    </div>
+                    <div class="tile-content">
+                        <h2><small><i class="icon-opera"></i>Opera 12.1</small></h2>
+                    </div>
+                    <div class="tile-content">
+                        <h2><small><i class="icon-safari"></i>Safari 6</small></h2>
+                    </div>
+				</div>
+			</div>
+		</div>
+		<h1 class="enter"><i class="icon-enter"></i>Aanmelden</h1>
+	</div>
+</div>	

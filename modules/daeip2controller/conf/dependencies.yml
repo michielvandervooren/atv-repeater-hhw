@@ -1,0 +1,4 @@
+self: daeip2controller -> daeip2controller 0.1
+
+require:
+    - play

@@ -1,0 +1,265 @@
+#{extends 'main.html' /}
+#{set title:'WebController' /}
+#{set 'moreScripts'}
+<script type="text/javascript">
+   	// support ws? 
+   	function hasWs() {
+   		return "WebSocket" in window;
+   	}
+   	
+   	function isAdmin() {
+   		return ${user.hasPermission("admin")};
+   	}
+   	
+   	function canReset() {
+   		return ${user.hasPermission("resetNicam")};
+   	}
+        	
+	// viewModel  
+	function Channel(data) {
+		this.channelId = ko.observable(data.id);
+		this.videoRelay = ko.observable(data.videoRelay.id);
+    	this.audioRelay = ko.observable(data.audioRelay ? data.audioRelay.id : null);
+    	this.videoEnabled = ko.observable(data.videoRelay.enabled);
+    	this.audioEnabled = ko.observable(data.audioRelay ? data.audioRelay.enabled : null);
+		this.action = ko.observable(data.videoRelay.action);    	
+    	this.name = ko.observable(data.name);
+    	this.description = ko.observable(data.description);
+    	this.icon = ko.observable(data.icon ? data.icon.className : null);
+    	this.color = ko.observable(data.color ? data.color.className : null);
+    	this.videoSelected = ko.observable(data.videoRelay.on);
+    	this.audioSelected = ko.observable(data.audioRelay ? data.audioRelay.on: null);
+    	this.tileCss = ko.computed(function() {
+    		styles = ["tile"];
+    		if (this.videoSelected()) {
+    			styles.push("selected");
+    		}
+    	#{if play.configuration.getProperty("ui.selected.only.color", "true").equals("true")}
+    		if (this.color() && (this.videoSelected() || $.inArray(this.channelId(), [6,7,10,11]) > -1)) {
+	    #{/if}
+	    #{else}
+		    if (this.color()) {
+		#{/else}    	
+    			styles.push(this.color());
+    		}
+    		if (!this.videoEnabled() || (this.videoSelected() && this.action() == "RESET_NICAM") || (!canReset() && this.action() == "RESET_NICAM")) {
+    			styles.push("disabled");
+    		} else {
+    			styles.push("opacity-middle");
+    			styles.push("outline-color-white");
+    		}
+    		return styles.join(" ");
+    	}, this);
+    	this.badgeCss = ko.computed(function() {
+    		styles = ["badge"];
+    		if (this.audioEnabled() && this.videoEnabled()) {
+    			if (this.audioSelected()){
+    				styles.push("icon-volume-2");
+    			} else {
+    				styles.push("icon-volume");
+    			}
+    		}
+    		return styles.join(" ");
+   		}, this);
+	}
+
+	function ATVRepeaterViewModel() {
+	    // Data 
+    	var self = this;
+    	self.channels = ko.observableArray([]);
+    	self.resetting = ko.observable(false);
+    	self.errormsg = ko.observable("");
+    	self.username = ko.observable("( ${user.username} )");
+    	self.firstname = ko.observable("${user.firstName}");
+    	self.isAdmin = ko.observable(${user.hasPermission("admin")});
+    	self.isReset = ko.observable(${user.hasPermission("resetNicam")});
+    	
+    	// Operations 
+    	self.selectVideoRelay = function(channel) {
+   			$.ajax({url: "/switch?id=" + channel.videoRelay(), type: "post", success: self.update, error: self.onerror});
+    	}
+    			
+    	self.selectAudioRelay = function(channel) {
+    		$.ajax({url: "/switch?id=" + channel.audioRelay(), type: "post", success: self.update, error: self.onerror});
+    	}
+
+		self.update = function(jsonData) {
+			//alert(JSON.stringify(jsonData))
+			var mappedChannels = $.map(jsonData.channels, function(item) { return new Channel(item) });
+            self.channels(mappedChannels);
+            self.resetting(jsonData.resetting);
+		}
+				
+		self.onerror = function (jqXHR, timeout, message) {
+			var contentType = jqXHR.getResponseHeader("Content-Type");
+			if (jqXHR.status === 200 && contentType.toLowerCase().indexOf("text/html") >= 0) {
+				// assume that our login has expired - reload our current page
+				window.location.reload();
+			} else if (jqXHR.status === 403) {
+				self.errormsg("Actie niet toegestaan");
+			} else if (jqXHR.status === 404) {
+				self.errormsg("Resource niet gevonden");
+			} else {
+				self.errormsg("Onverwachte server fout");
+			}
+		}
+		
+		self.resetError = function() {
+			self.errormsg("");
+		}
+				
+        // Load initial state from server 
+        $.getJSON("@{Application.show()}", self.update);
+	}
+
+	var socket;
+
+	// on page init 
+	$(document).ready(function() {
+		viewModel = new ATVRepeaterViewModel();
+		if (hasWs()) {
+	        // Create a socket 
+	    	socket = new WebSocket("@@{Application.WebSocket.listen()}");
+	       	// Socket message handler 
+	       	socket.onmessage = function(event) {
+	       		jsonData = JSON.parse(event.data);
+	       		viewModel.update(jsonData);
+	       	};
+	       	socket.onerror = function(event) {
+	       		viewModel.errormsg("Verbindingsfout: " + event.data + " Ververs de pagina.");
+	       	};
+	       	socket.onclose = function(event) {
+	       		viewModel.errormsg("Verbinding met server verbroken. Ververs de pagina.");
+	       	};
+		} else {
+			setInterval(function() {
+				$.getJSON("@{Application.show()}", viewModel.update);
+			}, ${play.configuration.getProperty("ui.update.interval", "10000")});
+		}
+		// Activate Knockout 
+	    ko.applyBindings(viewModel);
+	});
+</script>
+#{/set}
+
+<div class="page secondary fixed-header">
+    <div class="page-header ">
+        <div class="page-header-content">
+            <div class="user-login">
+                <div class="name">
+                    <span class="first-name" data-bind="text: firstname"></span>
+                    <span class="last-name" data-bind="text: username"></span>
+                </div>
+                <div class="avatar fg-color-white icon-switch" onclick="window.location='@{Secure.logout()}'" style="font-size: 1.4em"></div>
+                <div class="avatar fg-color-white icon-cog" onclick="window.location='@{CRUD.index()}'" data-bind="visible: isAdmin" style="font-size: 1.4em"></div>
+            </div>
+
+            <h1>ATV Repeater <small>Heerhugowaard</small></h1>
+        </div>
+    </div>
+    
+    <div class="error-bar" data-bind="visible: errormsg().length > 0">
+    	<p data-bind="text: errormsg"></p>
+    	<button class="place-right" data-bind="click: resetError">Gezien</button>
+    </div>
+
+	<div class="page-region">
+        <div class="page-region-content tiles">
+            <div class="tile-group" style="width: 400px">
+
+                <div class="tile triple opacity-middle" data-role="tile-slider" data-param-period="2700">
+                    <div class="tile-content">
+                    	<h2 class="icon-enter"></h2>
+                        <h3><small>Jeroen is ingelogd op 13-01-2013 om 17:21</small></h3> 
+						<p></p>
+                    </div>
+                    <div class="tile-content">
+                    	<h2 class="icon-camera-2"></h2>
+                        <h3>Martijn schakelt video</h3> 
+						<p>op 13-01-2013 14:59</p>
+                    </div>
+                    <div class="tile-content">
+                    	<h2 class="icon-volume-2"></h2>
+                        <h3>Johan schakelt audio</h3> 
+						<p>13-01-2013 14:46</p>
+                    </div>
+                    <div class="tile-content">
+                    	<h2 class="icon-lightning"></h2>
+                        <h3>Johan reset nicam</h3> 
+						<p>13-01-2013 14:46</p>
+                    </div>
+                    <div class="tile-content">
+                    	<h2 class="icon-exit"></h2>
+                        <h3>Johan is uitgelogd</h3> 
+						<p>13-01-2013 14:46</p>
+                    </div>
+                    <div class="tile-content">
+                    	<h2 class="icon-comments-3"></h2>
+                        <h3>Jeroen roept:</h3> 
+						<p>13-01-2013 14:46</p>
+                    </div>
+                    <div class="brand">
+                        <span class="name">Laatste acties</span>
+                    </div>
+                </div>
+            
+                <div class="tile triple double-vertical image" style="background-color: #000000">
+                    <div class="tile-content">
+                        <object id="wmp" width="380" height="220" classid="clsid:6BF52A52-394A-11D3-B153-00C04F79FAA6" type="application/x-ms-wmp">
+							<param name="uiMode" value="none" />
+							<param name="stretchToFit" value="true" />
+							<param name="autoStart" value="true" />
+	       					<param name="mute" value="true" />
+	       					<param name="url" value="mms://stream.pi6nhn.nl:2551" />
+	       					<embed type="application/x-ms-wmp" width="380" height="220" mute="1" url="mms://stream.pi6nhn.nl:2551" uiMode="none" />
+	       				</object>
+                    </div>
+                    <div class="tile-status opacity-middle">
+                        <span class="name">Live stream</span>
+                    </div>
+                </div>
+
+                <div class="tile image-slider" data-role="tile-slider" data-param-direction="left">
+                    <div class="tile-content">
+                        <img src="@{'/public/images/sb2-img1.png'}" />
+                    </div>
+                    <div class="tile-content">
+                        <img src="@{'/public/images/sb2-img2.png'}" />
+                    </div>
+                    <div class="tile-content">
+                        <img src="@{'/public/images/sb2-img3.png'}" />
+                    </div>
+                </div>
+
+                <div class="tile double opacity-middle" data-role="tile-slider" data-param-period="4300">
+                    <div class="tile-content">
+                        <h3><small>Welkom op de nieuwe schakelmodule van ATV Repeater Heerhugowaard!</small></h3>
+                    </div>
+                    <div class="tile-content">
+                        <h3><small>De nieuwe versie zal voortaan door het leven gaan als de 'WebController'</small></h3>
+                    </div>
+                    <div class="tile-content">
+                        <h3><small>Er zit nog wat nieuwe functionaliteit in de pijplijn. Binnenkort meer..</small></h3>
+                    </div>
+                    <div class="tile-content">
+	                    <h2 class="icon-mail"></h2>
+                        <h3><small>Mail voor meer informatie naar: <a href="mailto:chielson@hotmail.com">Michiel</a></small></h3>
+                    </div>
+                </div>
+                <h6 class="opacity"><img width="20" height="20" src="@{'/public/images/bastiaan-logo-trans.png'}"/><span style="margin: 3px">WebController 2.1</span></h6>
+
+			</div>
+			<div class="tile-group" style="width: 520px" data-bind="foreach: channels">
+			    <div data-bind="css: tileCss, click: $parent.selectVideoRelay, attr: {id: channelId}">
+                    <div class="tile-content">
+                    	<h2 data-bind="css: icon"></h2>
+                    </div>
+                    <div class="brand">
+                        <span class="name" data-bind="text: name"></span>
+                        <span data-bind="css: badgeCss, click: $parent.selectAudioRelay, clickBubble: false"></span>
+                    </div>
+                </div>
+			</div>
+		</div>
+	</div>
+</div>

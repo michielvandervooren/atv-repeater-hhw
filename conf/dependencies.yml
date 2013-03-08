@@ -1,0 +1,17 @@
+# Application dependencies
+
+require:
+    - play
+    - play -> crud
+    - daeip2controller -> daeip2controller 0.1
+    - access -> access 0.1
+
+repositories:
+
+    - playCustomModules:
+        type: local
+        descriptor: ${application.path}/../../modules/[module]/conf/dependencies.yml
+        artifact: ${application.path}/../../modules/[module]
+        contains:
+            - daeip2controller
+            - access

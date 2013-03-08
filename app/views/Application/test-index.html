@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+
+<html>
+    <head>
+		<title>ATV Repeater Heerhugowaard</title>
+        <link rel="stylesheet" media="screen" href="@{'/public/stylesheets/main.css'}">
+        <link rel="shortcut icon" type="image/png" href="@{'/public/images/favicon.png'}">
+        <script src="@{'/public/javascripts/jquery-1.6.4.min.js'}" type="text/javascript" charset="${_response_encoding}"></script>
+        <script src="@{'/public/javascripts/knockout-2.1.0.js'}" type="text/javascript" charset="${_response_encoding}"></script>
+        
+        <script type="text/javascript">
+        	// support ws? 
+        	function hasWs() {
+        		return "WebSocket" in window;
+        	}
+        	
+			// viewModel  
+			function Channel(data) {
+    			this.videoRelay = ko.observable(data.videoRelay.id);
+    			this.audioRelay = ko.observable(data.audioRelay ? data.audioRelay.id : null);
+    			this.videoEnabled = ko.observable(data.videoRelay.enabled);
+    			this.audioEnabled = ko.observable(data.audioRelay ? data.audioRelay.enabled : null);
+    			this.name = ko.observable(data.name);
+    			this.description = ko.observable(data.description);
+    			this.icon = ko.observable(data.icon)
+    			this.videoSelected = ko.observable(data.videoRelay.on);
+    			this.audioSelected = ko.observable(data.audioRelay ? data.audioRelay.on: null);
+			}
+
+			function ATVRepeaterViewModel() {
+			    // Data 
+    			var self = this;
+    			self.channels = ko.observableArray([]);
+    			self.resetting = ko.observable(false);
+    			self.errormsg = ko.observable("");
+    			self.username = ko.observable("[${user.username}]");
+    			self.firstname = ko.observable("${user.firstName}");
+    			self.adminPermission = ko.observable(${user.hasPermission("admin")});
+    			self.resetNicamPermisson = ko.observable(${user.hasPermission("resetNicam")});
+
+    			// Operations 
+    			self.selectVideoRelay = function(channel) {
+   					$.ajax({url: "/switch?id=" + channel.videoRelay(), type: "post", success: self.update});
+    			}
+    			
+    			self.selectAudioRelay = function(channel) {
+    				$.ajax({url: "/switch?id=" + channel.audioRelay(), type: "post", success: self.update});
+    			}
+
+				self.update = function(jsonData) {
+					var mappedChannels = $.map(jsonData.channels, function(item) { return new Channel(item) });
+    		        self.channels(mappedChannels);
+    		        self.resetting(jsonData.resetting);
+				}
+				
+				self.onerror = function (jqXHR, timeout, message) {
+					var contentType = jqXHR.getResponseHeader("Content-Type");
+					if (jqXHR.status === 200 && contentType.toLowerCase().indexOf("text/html") >= 0) {
+						// assume that our login has expired - reload our current page
+						window.location.reload();
+					} else if (jqXHR.status === 403) {
+						self.errormsg("Actie niet toegestaan");
+					} else if (jqXHR.status === 404) {
+						self.errormsg("Resource niet gevonden");
+					} else {
+						self.errormsg("Server fout");
+					}
+				}
+				
+    		    // Load initial state from server 
+    		    $.getJSON("@{Application.show()}", self.update);
+			}
+
+			var socket;
+
+			// on page init 
+			$(document).ready(function() {
+				viewModel = new ATVRepeaterViewModel();
+				if (hasWs()) {
+			        // Create a socket 
+			    	socket = new WebSocket("@@{Application.WebSocket.listen()}");
+		        	// Socket message handler 
+		        	socket.onmessage = function(event) {
+		        		jsonData = JSON.parse(event.data);
+		        		viewModel.update(jsonData);
+		        	};
+				} else {
+					setInterval(function() {
+						$.getJSON("@{Application.show()}", viewModel.update);
+					}, 10000);
+				}
+				// Activate Knockout 
+		        ko.applyBindings(viewModel);
+			});
+		</script>
+    </head>
+    <body>
+		#{a @Application.show()}show#{/a}<br/>
+		<textarea name="channels" data-bind="value: ko.toJSON(channels)"></textarea>
+		<div>
+			resetting: <input type="checkbox" data-bind="checked: resetting" />
+		</div>
+		<div data-bind="foreach: channels">
+    		<div>
+        		<input data-bind="value: videoRelay" />
+        		<input type="checkbox" data-bind="checked: videoEnabled" />
+        		<input data-bind="value: audioRelay" />
+        		<input type="checkbox" data-bind="checked: audioEnabled" />
+        		<input data-bind="value: name" />
+        		<input data-bind="value: description" />
+        		<input type="checkbox" data-bind="checked: videoSelected" />
+        		<input type="checkbox" data-bind="checked: audioSelected" />
+        		<a href="#" data-bind="click: $parent.selectVideoRelay">Select Video</a>
+        		<a href="#" data-bind="click: $parent.selectAudioRelay">Select Audio</a>
+    		</div> 
+		</div>
+    </body>
+</html>

@@ -1,0 +1,41 @@
+body {
+	background :url('../images/atv-repeater-hhw-2-bg.png') no-repeat center center fixed;
+	-moz-background-size: cover;
+	-webkit-background-size: cover;
+	-o-background-size: cover;
+	background-size: cover;
+}
+
+.opacity {
+	opacity: 0.8
+}
+
+.opacity-middle {
+	opacity: 0.6
+}
+
+.opacity:hover {
+	opacity: 1
+}
+
+.disabled {
+	opacity: 0.25;
+	cursor: auto
+}
+
+.selected {
+	opacity: 1
+}
+
+.icon-image {
+	padding-top: 7px;
+	text-align: center;
+}
+
+.enter {
+	font-size: 7em;
+	opacity: 0.3;
+	position: absolute;
+	top: 60%;
+	right: 10%
+}

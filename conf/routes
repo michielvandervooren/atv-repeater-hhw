@@ -1,0 +1,16 @@
+# Routes
+
+# Home page
+*		/										module:access
+*		/admin									module:crud
+GET     /                                       Application.index
+GET		/show									Application.show
+POST	/switch									Application.switchRelay
+WS      /socket                                 Application.WebSocket.listen
+
+# Ignore favicon requests
+GET     /favicon.ico                            404
+
+# Map static resources from the /app/public folder to the /public path
+GET     /public/                                staticDir:public
+

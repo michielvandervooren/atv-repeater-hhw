@@ -1,0 +1,86 @@
+# You can specialize this file for each language.
+# For example, for French create a messages.fr file
+#
+crud.title=Beheer
+crud.blank=Nieuw
+crud.index.title=Kies een te wijzigen object
+crud.index.add=Toevoegen
+crud.add=&{%s} toevoegen
+crud.list.title=&{%s}
+crud.list.size=%d &{%s}
+crud.list.totalSize=%d totaal
+crud.pagination.previous=« Vorige
+crud.pagination.next=Volgende »
+crud.pagination.last=Laatste »»
+crud.pagination.first=«« Eerste
+crud.show.title=Wijzig &{%s}
+crud.save=Opslaan
+crud.saveAndContinue=Opslaan en doorgaan met wijzigen
+crud.cancel=Afbreken
+crud.hasErrors=Corrigeer fouten a.u.b.
+crud.blank.title=&{%s} toevoegen
+crud.saveAndAddAnother=Opslaan en nieuwe toevoegen
+crud.delete=Verwijder &{%s}
+crud.created=De &{%s} is toegevoegd
+crud.saved=De &{%s} is opgeslagen
+crud.deleted=De &{%s} is verwijderd
+crud.delete.error=Kan dit object niet verwijderen
+crud.search=Zoek
+crud.none=(Geen)
+crud.selectValue=(Kies een waarde a.u.b.)
+
+crud.help.required=Verplicht.
+crud.help.minlength=Min lengte is %d.
+crud.help.maxlength=Max lengte is %d.
+crud.help.email=Geldig emailadres.
+crud.help.dateformat=&{%s} formaat.
+crud.help.numeric=Numeriek.
+crud.help.min=Moet groter zijn dan %d.
+crud.help.future=In de toekomst.
+crud.help.past=In het verleden.
+crud.help.after=Na %s.
+crud.help.before=Voor %s.
+crud.help.range=Tussen %d en %d
+
+secure.username=Gebruikersnaam
+secure.password=Wachtwoord
+secure.remember=Onthoud mij
+secure.signin=Login
+secure.title=Welkom bij de WebController van ATV Repeater Heerhugowaard
+
+username=Gebruikersnaam
+email=Emailadres
+firstName=Voornaam
+password=Wachtwoord
+name=Naam
+description=Omschrijving
+permissions=Autorisaties
+permission=Autorisatie
+roles=Rollen
+videoPort=Video relais
+audioPort=Audio relais
+image=Afbeelding
+action=Actie
+enabled=Actief
+audioRelay=Audio relais
+videoRelay=Video relais
+controllerId=Controller
+relayId=Relais
+switchType=Schakelingtype
+userName=Gebruikersnaam
+url=Url
+icon=Icoon
+color=Kleur
+
+Channels=Kanalen
+Channel=Kanaal
+Users=Gebruikers
+User=Gebruiker
+Roles=Rollen
+Role=Rol
+Permissions=Autorisaties
+Permission=Autorisatie
+Relays=Relais
+Relay=Relais
+RelayControllers=Relaiscontrollers
+RelayController=Relaiscontroller
