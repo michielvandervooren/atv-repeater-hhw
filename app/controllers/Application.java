@@ -16,7 +16,7 @@ import play.mvc.Http;
 import play.mvc.WebSocketController;
 import play.mvc.With;
 
-@With({Secure.class, SwitchAuditLog.class})
+@With({Secure.class})
 public class Application extends Controller {
 
 	/**
